@@ -4,16 +4,15 @@ This repository provisions an AWS EKS cluster and installs the Kubernetes founda
 
 
 
-
 The implementation is intentionally divided into three operational phases:
 
 1. **Part 1 — Create AWS infrastructure**
 2. **Part 2 — Install and validate MuleSoft Runtime Fabric**
 3. **Part 3 — Safely uninstall and destroy all resources**
 
-> **Important:** Terraform provisions AWS and Kubernetes infrastructure. Runtime Fabric activation data must still be generated from Anypoint Platform Runtime Manager. Terraform passes this activation data to `rtfctl`, which executes Runtime Fabric validation and installation from your local machine.
+> \*\*Important:\*\* Terraform provisions AWS and Kubernetes infrastructure. Runtime Fabric activation data must still be generated from Anypoint Platform Runtime Manager. Terraform passes this activation data to `rtfctl`, which executes Runtime Fabric validation and installation from your local machine.
 
----
+\---
 
 ## Repository Structure
 
@@ -44,7 +43,7 @@ The implementation is intentionally divided into three operational phases:
     └── terraform-design-notes.md
 ```
 
----
+\---
 
 ## Simplified Terraform Flow
 
@@ -100,7 +99,7 @@ Root Terraform Module
     └── KMS encryption
 ```
 
----
+\---
 
 # Part 1 — Create AWS Resources
 
@@ -134,16 +133,20 @@ AWS Account
 
 Run:
 If Mac:
+
 ```bash
 chmod +x scripts/install-prerequisites-mac.sh
 ./scripts/install-prerequisites-mac.sh
 ```
+
 If Windows:
+
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-Unblock-File .\install-prerequisites-windows.ps1
-.\install-prerequisites-windows.ps1
+Unblock-File .\\install-prerequisites-windows.ps1
+.\\install-prerequisites-windows.ps1
 ```
+
 The script installs or validates:
 
 * Homebrew
@@ -188,7 +191,7 @@ aws sts get-caller-identity
 
 Expected output should show your AWS Account ID, IAM user, or assumed role.
 
----
+\---
 
 ## Configure Terraform Variables
 
@@ -202,26 +205,26 @@ cp terraform.tfvars.example terraform.tfvars
 Update `terraform.tfvars`:
 
 ```hcl
-aws_region   = "ap-south-1"
-cluster_name = "mulesoft-eks-cluster"
+aws\_region   = "ap-south-1"
+cluster\_name = "mulesoft-eks-cluster"
 
-node_instance_types = ["t3.medium"]
+node\_instance\_types = \["t3.medium"]
 
-desired_node_count = 3
-min_node_count     = 3
-max_node_count     = 3
+desired\_node\_count = 3
+min\_node\_count     = 3
+max\_node\_count     = 3
 
-rtf_domain = "rtf.muleaceacademy.com"
+rtf\_domain = "rtf.muleaceacademy.com"
 
 # Disable Runtime Fabric installation during Part 1.
-install_runtime_fabric     = false
-apply_rtf_ingress_template = false
-apply_mule_license         = false
+install\_runtime\_fabric     = false
+apply\_rtf\_ingress\_template = false
+apply\_mule\_license         = false
 ```
 
-> Set `install_runtime_fabric = false` during this phase. Runtime Fabric installation will be enabled in Part 2 after the EKS cluster is validated.
+> Set `install\_runtime\_fabric = false` during this phase. Runtime Fabric installation will be enabled in Part 2 after the EKS cluster is validated.
 
----
+\---
 
 ## Initialize and Provision AWS Infrastructure
 
@@ -256,25 +259,25 @@ Terraform creates:
 * NGINX Ingress Controller through Helm
 * AWS Load Balancer for the NGINX Controller service
 
----
+\---
 
 ## Verify AWS and EKS Resources
 
 Update your local Kubernetes configuration:
 
 ```bash
-aws eks update-kubeconfig \
-  --region ap-south-1 \
+aws eks update-kubeconfig \\
+  --region ap-south-1 \\
   --name mulesoft-eks-cluster
 ```
 
 Verify the EKS cluster:
 
 ```bash
-aws eks describe-cluster \
-  --region ap-south-1 \
-  --name mulesoft-eks-cluster \
-  --query "cluster.status" \
+aws eks describe-cluster \\
+  --region ap-south-1 \\
+  --name mulesoft-eks-cluster \\
+  --query "cluster.status" \\
   --output text
 ```
 
@@ -319,14 +322,14 @@ The ingress-nginx-controller service should have an external AWS Load Balancer h
 Get the NGINX Load Balancer hostname:
 
 ```bash
-kubectl get svc ingress-nginx-controller \
-  -n ingress-nginx \
-  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+kubectl get svc ingress-nginx-controller \\
+  -n ingress-nginx \\
+  -o jsonpath='{.status.loadBalancer.ingress\[0].hostname}'
 ```
 
 Save this hostname because it is required for your DNS configuration in Part 2.
 
----
+\---
 
 # Part 2 — Install MuleSoft Runtime Fabric, Ingress Template, and Mule License
 
@@ -342,7 +345,7 @@ You need:
 * Runtime Fabric activation data
 * MuleSoft enterprise license file, for example `license.lic`
 
----
+\---
 
 ## Create Runtime Fabric in Anypoint Platform
 
@@ -370,75 +373,75 @@ Copy the Runtime Fabric activation data.
 Export activation data as an environment variable:
 
 ```bash
-export TF_VAR_rtf_activation_data='<paste-activation-data-from-anypoint-platform>'
+export TF\_VAR\_rtf\_activation\_data='<paste-activation-data-from-anypoint-platform>'
 ```
 
 Verify that the variable is available:
 
 ```bash
-echo $TF_VAR_rtf_activation_data
+echo $TF\_VAR\_rtf\_activation\_data
 ```
 
 Do not share the output in screenshots, logs, GitHub commits, or documentation.
 
----
+\---
 
 ## Configure Runtime Fabric Variables
 
 Update `terraform/terraform.tfvars`:
 
 ```hcl
-aws_region   = "ap-south-1"
-cluster_name = "mulesoft-eks-cluster"
+aws\_region   = "ap-south-1"
+cluster\_name = "mulesoft-eks-cluster"
 
-node_instance_types = ["t3.medium"]
+node\_instance\_types = \["t3.medium"]
 
-desired_node_count = 3
-min_node_count     = 3
-max_node_count     = 3
+desired\_node\_count = 3
+min\_node\_count     = 3
+max\_node\_count     = 3
 
-rtf_domain = "rtf.muleaceacademy.com"
+rtf\_domain = "rtf.muleaceacademy.com"
 
-install_runtime_fabric     = true
-apply_rtf_ingress_template = true
-apply_mule_license         = true
+install\_runtime\_fabric     = true
+apply\_rtf\_ingress\_template = true
+apply\_mule\_license         = true
 
-mule_license_file = "/absolute/path/to/license.lic"
+mule\_license\_file = "/absolute/path/to/license.lic"
 ```
 
 Example:
 
 ```hcl
-mule_license_file = "/Users/ashish/Downloads/license.lic"
+mule\_license\_file = "/Users/ashish/Downloads/license.lic"
 ```
 
----
+\---
 
 ## Configure Wildcard DNS
 
 Get the NGINX Load Balancer hostname:
 
 ```bash
-kubectl get svc ingress-nginx-controller \
-  -n ingress-nginx \
-  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+kubectl get svc ingress-nginx-controller \\
+  -n ingress-nginx \\
+  -o jsonpath='{.status.loadBalancer.ingress\[0].hostname}'
 ```
 
 Create a wildcard DNS record:
 
 ```text
-*.rtf.muleaceacademy.com → <NGINX Load Balancer DNS Name>
+\*.rtf.muleaceacademy.com → <NGINX Load Balancer DNS Name>
 ```
 
 Example:
 
 ```text
-*.rtf.muleaceacademy.com → a1234567890.ap-south-1.elb.amazonaws.com
+\*.rtf.muleaceacademy.com → a1234567890.ap-south-1.elb.amazonaws.com
 ```
 
 This wildcard DNS record allows Runtime Fabric applications to receive inbound traffic through NGINX.
 
----
+\---
 
 ## Install Runtime Fabric
 
@@ -472,7 +475,7 @@ rtfctl apply mule-license
 kubectl apply -f manifests/rtf-nginx-ingress-template.yaml
 ```
 
----
+\---
 
 ## Verify Runtime Fabric Installation
 
@@ -537,7 +540,7 @@ kubectl get pods -n ingress-nginx
 kubectl get svc -n ingress-nginx
 ```
 
----
+\---
 
 ## Validate Runtime Fabric in Anypoint Platform
 
@@ -555,7 +558,7 @@ Expected status:
 Active
 ```
 
----
+\---
 
 ## Associate Runtime Fabric with an Environment
 
@@ -573,7 +576,7 @@ Runtime Manager
 
 After associating the environment, you can deploy Mule applications to Runtime Fabric.
 
----
+\---
 
 ## Traffic Flow After Mule Application Deployment
 
@@ -593,15 +596,15 @@ Mule Application Service
 Mule Application Pod
 ```
 
----
+\---
 
 # Part 3 — Uninstall Runtime Fabric and Destroy Everything
 
 Use this phase only after all Mule applications, APIs, and Runtime Fabric dependencies have been removed.
 
-> **Warning:** Terraform destroy removes AWS infrastructure including the EKS cluster, worker nodes, VPC resources, NAT Gateway, load balancer, and associated EBS volumes.
+> \*\*Warning:\*\* Terraform destroy removes AWS infrastructure including the EKS cluster, worker nodes, VPC resources, NAT Gateway, load balancer, and associated EBS volumes.
 
----
+\---
 
 ## Pre-Destroy Checklist
 
@@ -628,7 +631,7 @@ Verify no Kubernetes workloads remain outside system namespaces:
 kubectl get pods -A
 ```
 
----
+\---
 
 ## Uninstall Runtime Fabric
 
@@ -637,8 +640,8 @@ If enabled, the Terraform destroy workflow runs a best-effort Runtime Fabric uni
 Ensure these Terraform variables are configured:
 
 ```hcl
-install_runtime_fabric   = true
-uninstall_rtf_on_destroy = true
+install\_runtime\_fabric   = true
+uninstall\_rtf\_on\_destroy = true
 ```
 
 Run the destroy script from the repository root:
@@ -667,7 +670,7 @@ Terraform performs the following activities:
 7. Deletes VPC networking resources, including NAT Gateway and subnets.
 ```
 
----
+\---
 
 ## Verify Runtime Fabric Removal
 
@@ -695,15 +698,15 @@ Expected result:
 Error from server (NotFound): namespaces "ingress-nginx" not found
 ```
 
----
+\---
 
 ## Verify AWS Infrastructure Removal
 
 After Terraform destroy completes, verify the EKS cluster no longer exists:
 
 ```bash
-aws eks describe-cluster \
-  --region ap-south-1 \
+aws eks describe-cluster \\
+  --region ap-south-1 \\
   --name mulesoft-eks-cluster
 ```
 
@@ -716,26 +719,26 @@ ResourceNotFoundException
 Verify that worker node instances are terminated:
 
 ```bash
-aws ec2 describe-instances \
-  --region ap-south-1 \
-  --filters "Name=tag:Name,Values=mulesoft-eks-cluster*"
+aws ec2 describe-instances \\
+  --region ap-south-1 \\
+  --filters "Name=tag:Name,Values=mulesoft-eks-cluster\*"
 ```
 
 Verify that load balancers are removed:
 
 ```bash
-aws elbv2 describe-load-balancers \
+aws elbv2 describe-load-balancers \\
   --region ap-south-1
 ```
 
 Verify NAT Gateway deletion:
 
 ```bash
-aws ec2 describe-nat-gateways \
+aws ec2 describe-nat-gateways \\
   --region ap-south-1
 ```
 
----
+\---
 
 ## Important Security Notes
 
@@ -754,7 +757,7 @@ Public CI/CD logs
 Use an environment variable:
 
 ```bash
-export TF_VAR_rtf_activation_data='<activation-data>'
+export TF\_VAR\_rtf\_activation\_data='<activation-data>'
 ```
 
 ### Mule License File
@@ -762,12 +765,12 @@ export TF_VAR_rtf_activation_data='<activation-data>'
 Use an absolute file path:
 
 ```hcl
-mule_license_file = "/Users/ashish/Downloads/license.lic"
+mule\_license\_file = "/Users/ashish/Downloads/license.lic"
 ```
 
 Do not commit the Mule license file into source control.
 
----
+\---
 
 ## NGINX Ingress Controller Versus AWS Load Balancer Controller
 
@@ -787,7 +790,7 @@ You do not need AWS Load Balancer Controller for this lab implementation.
 
 Use AWS Load Balancer Controller only when you intentionally require AWS ALB or NLB native ingress patterns.
 
----
+\---
 
 ## Cost Warning
 
@@ -806,3 +809,4 @@ Destroy the infrastructure after completing your lab or demonstration:
 cd terraform
 terraform destroy
 ```
+
